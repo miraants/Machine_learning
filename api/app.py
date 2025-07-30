@@ -1,16 +1,11 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from models.predictor import recommander_offre
 from data.database import get_opportunities
-import pickle
+from preprocessing.transformer import fusionner_offres, fusionner_profil
+from models.predictor import calculer_similarite
 
 app = FastAPI()
 
-# Charger le modèle NLP
-with open("data/model.pkl", "rb") as f:
-    model = pickle.load(f)
-
-# Schéma de données attendu
 class ProfilUtilisateur(BaseModel):
     fonction: str
     ville_actuelle: str
@@ -18,6 +13,17 @@ class ProfilUtilisateur(BaseModel):
     competences: str
 
 @app.post("/predict")
-def predict(profil: ProfilUtilisateur):
+def recommander(profil: ProfilUtilisateur):
     df = get_opportunities()
-    return recommander_offre(profil, df, model)
+    df = fusionner_offres(df)
+    texte_utilisateur = fusionner_profil(profil)
+    scores = calculer_similarite(texte_utilisateur, df["texte_complet"].tolist())
+    df["score"] = scores
+    top = df.sort_values(by="score", ascending=False).iloc[0]
+
+    return {
+        "titre": top["titre"],
+        "ville": top["city"],
+        "resume": top["summary"],
+        "score": float(top["score"])
+    }

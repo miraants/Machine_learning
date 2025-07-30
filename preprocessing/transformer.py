@@ -1,5 +1,14 @@
-def fusionner_profil(profil):
-    return f"{profil.fonction} - {profil.ville_voulue} - {profil.competences}"
+def fusionner_offres(df):
+    df["texte_complet"] = (
+        df["titre"].astype(str) + " - " +
+        df["city"].astype(str) + " - " +
+        df["summary"].astype(str)
+    )
+    return df
 
-def fusionner_offre(row):
-    return f"{row['titre']} - {row['city']} - {row['summary']}"
+def fusionner_profil(profil):
+    return (
+        profil.fonction + " - " +
+        profil.ville_voulue + " - " +
+        profil.competences
+    )

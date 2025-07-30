@@ -1,20 +1,11 @@
-from preprocessing.transformer import fusionner_profil, fusionner_offre
-from sentence_transformers import util
+from sentence_transformers import SentenceTransformer, util
+import numpy as np
 
-def recommander_offre(profil, df, model):
-    df["texte_complet"] = df.apply(fusionner_offre, axis=1)
-    texte_utilisateur = fusionner_profil(profil)
+# Chargement du modèle NLP une seule fois
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
-    emb_user = model.encode(texte_utilisateur, convert_to_tensor=True)
-    emb_offres = model.encode(df["texte_complet"].tolist(), convert_to_tensor=True)
+def calculer_similarite(texte_user, textes_offres):
+    emb_user = model.encode(texte_user, convert_to_tensor=True)
+    emb_offres = model.encode(textes_offres, convert_to_tensor=True)
     scores = util.cos_sim(emb_user, emb_offres)[0]
-    df["score"] = scores.cpu().numpy()
-
-    top = df.sort_values(by="score", ascending=False).head(1).iloc[0]
-
-    return {
-        "titre": top["titre"],
-        "ville": top["city"],
-        "resume": top["summary"],
-        "score": float(top["score"])
-    }
+    return scores.cpu().numpy()
