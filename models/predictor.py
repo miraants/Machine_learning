@@ -2,7 +2,7 @@ from sentence_transformers import SentenceTransformer, util
 import numpy as np
 
 # Chargement du modèle NLP une seule fois
-model = SentenceTransformer("all-MiniLM-L6-v2")
+model = SentenceTransformer("paraphrase-MiniLM-L3-v2")
 
 def calculer_similarite(texte_user, textes_offres):
     emb_user = model.encode(texte_user, convert_to_tensor=True)
